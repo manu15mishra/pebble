@@ -744,7 +744,9 @@ with col2:
 st.markdown("<hr style='margin-top: 3.5rem; margin-bottom: 0.5rem; border: none; border-bottom: 3px solid #E2E8F0;' />", unsafe_allow_html=True)
 
 # Data File Path
-DATA_FILE = "/Users/Nema/.gemini/antigravity/scratch/hse_chatbot/hse_data.txt"
+import os
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_FILE = os.path.join(BASE_DIR, "hse_data.txt")
 
 # Load Data
 pages = load_hse_data(DATA_FILE)
