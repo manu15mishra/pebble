@@ -550,9 +550,12 @@ def search_relevant_chunks(query, chunks, vectorizer, tfidf_matrix, top_k=5):
     similarities = cosine_similarity(query_vec, tfidf_matrix).flatten()
     top_indices = np.argsort(similarities)[::-1][:top_k]
     
+    # Lower threshold for short queries (like a single word) to ensure we still return matches
+    threshold = 0.01 if len(query.strip().split()) <= 2 else 0.05
+    
     results = []
     for idx in top_indices:
-        if similarities[idx] > 0.05:  # Relevance threshold
+        if similarities[idx] > threshold:  # Relevance threshold
             results.append((chunks[idx], similarities[idx]))
     return results
 
@@ -680,66 +683,95 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-col1, col2, spacer = st.columns([0.8, 2.2, 0.5])
-with col1:
-    st.markdown(f"""
-    <div style="width: 100%; display: flex; justify-content: flex-start; align-items: center;">
-        <img src="data:image/png;base64,{flower_base64}" style="max-height: 180px; width: auto; max-width: 100%; object-fit: contain; border: none; outline: none; background: transparent; box-shadow: none; -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%), linear-gradient(to bottom, black 85%, transparent 100%); -webkit-mask-composite: source-in; mask-image: linear-gradient(to right, black 85%, transparent 100%), linear-gradient(to bottom, black 85%, transparent 100%); mask-composite: intersect;" alt="Pebble Hero Graphic" />
-    </div>
-    """, unsafe_allow_html=True)
-with col2:
-    heading_html = """
+hero_html = f"""
 <style>
-.animated-heading-container h1 {
+.hero-flex {{
     display: flex;
-    align-items: center; /* Changed from baseline to fix the overflow alignment bug */
+    flex-direction: row;
+    align-items: center;
+    gap: 2rem;
+    width: 100%;
+}}
+.hero-image-col {{
+    flex: 0 0 auto;
+    width: 25%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}}
+.hero-text-col {{
+    flex: 1;
+    min-width: 0; /* Prevents flex children from overflowing */
+}}
+
+.animated-heading-container h1 {{
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap; /* Fix overflow on mobile */
     gap: 12px;
     margin-bottom: 0.5rem;
-}
-.tagline-divider {
+}}
+.tagline-divider {{
     font-weight: 300;
     font-size: 1em;
-    color: #cbd5e1; /* Lighter grey so it acts as a subtle separator */
-    transform: translateY(3px); /* Optically aligns it with the baseline of 'Pebble' */
-}
-.typewriter-text {
+    color: #cbd5e1;
+    transform: translateY(3px);
+}}
+.typewriter-text {{
     display: inline-block;
     overflow: hidden;
     white-space: nowrap;
     font-weight: 400; 
-    font-size: 0.45em; /* Significantly reduced size */
+    font-size: 0.45em;
     color: #64748b;
     border-right: 2px solid #64748b; 
-    transform: translateY(3px); /* Matches the divider's alignment */
+    transform: translateY(3px);
     line-height: 1.2;
-    
     animation: type-and-pause 5.5s infinite, blink 0.8s step-end infinite;
-}
+}}
 
-@keyframes type-and-pause {
-    0% { max-width: 0; animation-timing-function: steps(25, end); }
-    45.45% { max-width: 26ch; animation-timing-function: step-end; }
-    99% { max-width: 26ch; }
-    100% { max-width: 0; }
-}
+@keyframes type-and-pause {{
+    0% {{ max-width: 0; animation-timing-function: steps(25, end); }}
+    45.45% {{ max-width: 26ch; animation-timing-function: step-end; }}
+    99% {{ max-width: 26ch; }}
+    100% {{ max-width: 0; }}
+}}
 
-@keyframes blink {
-    from, to { border-color: transparent; }
-    50% { border-color: #64748b; }
-}
+@keyframes blink {{
+    from, to {{ border-color: transparent; }}
+    50% {{ border-color: #64748b; }}
+}}
+
+/* Ensure responsiveness on mobile */
+@media (max-width: 768px) {{
+    .hero-flex {{
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }}
+    .hero-image-col {{
+        width: 100%;
+        justify-content: center;
+    }}
+}}
 </style>
-<div class="animated-heading-container">
-    <h1>Pebble <span class="tagline-divider">|</span> <span class="typewriter-text">Clear, Grounded Guidance</span></h1>
+
+<div class="hero-flex">
+    <div class="hero-image-col">
+        <img src="data:image/png;base64,{flower_base64}" style="max-height: 180px; width: auto; max-width: 100%; object-fit: contain; border: none; outline: none; background: transparent; box-shadow: none; -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%), linear-gradient(to bottom, black 85%, transparent 100%); -webkit-mask-composite: source-in; mask-image: linear-gradient(to right, black 85%, transparent 100%), linear-gradient(to bottom, black 85%, transparent 100%); mask-composite: intersect;" alt="Pebble Hero Graphic" />
+    </div>
+    <div class="hero-text-col">
+        <div class="animated-heading-container">
+            <h1>Pebble <span class="tagline-divider">|</span> <span class="typewriter-text">Clear, Grounded Guidance</span></h1>
+        </div>
+        <div class="hero-container" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0; padding-top: 0; margin-top: 0;">
+            <div class="hero-subtitle" style="font-size: 1.2rem; font-style: normal; font-weight: 400; color: #666666; margin-bottom: 0.25rem;">Small questions. Trusted answers.</div>
+            <div class="hero-description" style="font-size: 0.95rem; font-weight: 400; color: #444444; line-height: 1.4;">Parenting comes with new questions every day. This AI assistant makes trusted HSE guidance easier to access by turning reliable information from mychild.ie into natural, conversational answers. Get practical support on pregnancy, babies, nutrition, sleep, development, and family wellbeing.</div>
+        </div>
+    </div>
 </div>
 """
-    st.markdown(heading_html, unsafe_allow_html=True)
-    
-    st.markdown("""
-    <div class="hero-container" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0; padding-top: 0; margin-top: 0;">
-        <div class="hero-subtitle" style="font-size: 1.2rem; font-style: normal; font-weight: 400; color: #666666; margin-bottom: 0.25rem;">Small questions. Trusted answers.</div>
-        <div class="hero-description" style="font-size: 0.95rem; font-weight: 400; color: #444444; line-height: 1.4;">Parenting comes with new questions every day. This AI assistant makes trusted HSE guidance easier to access by turning reliable information from mychild.ie into natural, conversational answers. Get practical support on pregnancy, babies, nutrition, sleep, development, and family wellbeing.</div>
-    </div>
-    """, unsafe_allow_html=True)
+st.markdown(hero_html, unsafe_allow_html=True)
 
 st.markdown("<hr style='margin-top: 3.5rem; margin-bottom: 0.5rem; border: none; border-bottom: 3px solid #E2E8F0;' />", unsafe_allow_html=True)
 
